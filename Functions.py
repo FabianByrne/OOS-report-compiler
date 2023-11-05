@@ -4,15 +4,27 @@ import os
 dictname_list = list()
 OOS_dict = dict()
 
-def run_program():
-    """ This starts the application by passing the output of 'spreadsheet_iterator()' into 'criteria_check()', then using
-     that for the 'user_interface()' function's 'returned_data' parameter """
 
+def run_program():
+    """ This starts the application by:
+    1. Obtaining the file paths of the OOS result folder and the Contact details spreadsheet, then storing them in variables
+    2. Passing the output of 'spreadsheet_iterator()' into 'criteria_check()'
+    3. Passing the output of 'criteria check' into the 'user_interface()' function's 'returned_data' parameter """
+
+    excelfile_paths()
     user_interface(criteria_check(spreadsheet_iterator()))
+
+def excelfile_paths():
+    # Specify the folder path containing the OOS spreadsheets and the contact info
+    global OOS_file_input
+    global contact_file_input
+    OOS_file_input = input("\nInsert the file path for the 'OOS results folder': ")
+    contact_file_input = input("Insert a file path for the 'Contact details' spreadsheet: ")
 
 def spreadsheet_iterator():
     # Specify the folder path containing the Excel files
-    folder_path = r'C:\Users\Fabian\PycharmProjects\OOSproject\OOS results folder'
+
+    folder_path = OOS_file_input
 
     # Iterate through all files in the folder
     for filename in os.listdir(folder_path):
@@ -32,8 +44,8 @@ def spreadsheet_iterator():
 
     return list_and_dict
 
-def main_concerns(excel_file):
 
+def main_concerns(excel_file):
     """
     This function applies the test_checker function to each Excel file in the OOS folder.
     For each excel file, any sample with a test that is being checked for (see below) will be tacked onto the OOS_dict.
@@ -48,15 +60,14 @@ def main_concerns(excel_file):
 
     test_checker(excel_file, "Salmonella SOLUS")
     test_checker(excel_file, "Listeria SOLUS")
-    test_checker(excel_file,"E.coli")
-    test_checker(excel_file,"Listeria enumeration")
-    test_checker(excel_file,"Listeria MALDITOF")
+    test_checker(excel_file, "E.coli")
+    test_checker(excel_file, "Listeria enumeration")
+    test_checker(excel_file, "Listeria MALDITOF")
     test_checker(excel_file, "Salmonella MALDITOF")
-    test_checker(excel_file,"Clostridium perfringens")
+    test_checker(excel_file, "Clostridium perfringens")
 
 
-def test_checker(excel_file,test):
-
+def test_checker(excel_file, test):
     """
     There are two items being returned from this function:
 
@@ -76,8 +87,6 @@ def test_checker(excel_file,test):
 
     row_numbers = filtered_data.index.tolist()
 
-    #print(f"Row numbers = {row_numbers}")
-
     for row in row_numbers:
         customer_data = (filtered_data.at[row, "Customer"])
         sample_number = (filtered_data.at[row, "Number"])
@@ -86,8 +95,6 @@ def test_checker(excel_file,test):
         description_data = (filtered_data.at[row, "Description"])
         test_data = (filtered_data.at[row, "Test"])
         result_data = (filtered_data.at[row, "Result"])
-
-
 
         nested_dict_name = str(sample_number + ' ' + test_data)
 
@@ -102,11 +109,10 @@ def test_checker(excel_file,test):
             "Test": test_data,
             "Result": result_data,
         }
-    return(dictname_list),(OOS_dict)
+    return (dictname_list), (OOS_dict)
 
 
 def criteria_check(list_and_dict):
-
     """ This is where the 'name / sample number' in the dictname_list is organized into new categories based on criteria outlined below.
     Later, if more information is needed about a sample, the dictname_list entry can be used to search the disorganised OOS_dict for a
     value (the nested dictionary) corresponding to a key of the same name
@@ -118,7 +124,7 @@ def criteria_check(list_and_dict):
 
     phone_call = []
     escalation_needed = []
-    daily_path_positives= []
+    daily_path_positives = []
     daily_path_negatives = []
     IQC_EQA_list = []
     local_environmental_failures = []
@@ -212,16 +218,17 @@ def criteria_check(list_and_dict):
             else:
                 pass
 
-    print(f"\nTask complete! There are {len(phone_call)} results out of specification, and {len(escalation_needed)} samples requiring escalation...\n")
-    # print(daily_path_negatives) -- another troubleshooting line
+    print(
+        f"\nTask complete! There are {len(phone_call)} results out of specification, and {len(escalation_needed)} samples requiring escalation...\n")
+
 
     return phone_call, escalation_needed, daily_path_positives, daily_path_negatives, IQC_EQA_list, local_environmental_failures
 
-def user_interface(returned_data):
 
+def user_interface(returned_data):
     """ This function processes the user's input - obtained through the nested user_choice() function"""
 
-    #print(returned_data) -- This line is useful for troubleshooting, as it will print all OOS results without needing the menu
+
     escape = False
     phone_call = returned_data[0]
 
@@ -253,16 +260,17 @@ def user_interface(returned_data):
                 print(f"{counter + 1}. {phonecall_list[counter]}")
                 customer_num_reference[counter] = phonecall_list[counter]
                 counter += 1
-            #print(customer_num_reference)
+            # print(customer_num_reference)
             customerexpand = input(f"Select a customer to expand (1-{len(phonecall_set)}):\n ")
             customerexpand = int(customerexpand)
 
-            if customerexpand not in range(1, len(phonecall_list)+1):
+            if customerexpand not in range(1, len(phonecall_list) + 1):
                 print("Invalid input!")
             else:
                 print(f"Expanding {phonecall_list[customerexpand - 1]}...")
                 currentTest = ''
-                contact_info(customer_num_reference.get(customerexpand - 1))# This calls the contact_info function with the expanded customer as an argument
+                contact_info(customer_num_reference.get(
+                    customerexpand - 1))  # This calls the contact_info function with the expanded customer as an argument
                 for item in phone_call:
                     if OOS_dict.get(item).get("Customer") == (customer_num_reference.get(customerexpand - 1)):
                         currentItem = (OOS_dict.get(item))
@@ -272,7 +280,8 @@ def user_interface(returned_data):
                         else:
                             pass
 
-                        print(f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
+                        print(
+                            f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
                     else:
                         pass
             pressEnter = input("\nPress enter to continue... ")
@@ -283,7 +292,8 @@ def user_interface(returned_data):
                 print("Escalation needed for: ")
                 for item in escalation_needed:
                     currentItem = (OOS_dict.get(item))
-                    print(f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
+                    print(
+                        f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
             pressEnter = input("\nPress enter to continue... ")
 
         elif user_input == 3:
@@ -293,7 +303,8 @@ def user_interface(returned_data):
                 print("Environmental failures found:")
                 for item in local_environmental_failures:
                     currentItem = (OOS_dict.get(item))
-                    print(f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
+                    print(
+                        f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
             pressEnter = input("\nPress enter to continue... ")
 
         elif user_input == 4:
@@ -303,7 +314,8 @@ def user_interface(returned_data):
                 print("IQC / EQA samples found:")
                 for item in IQC_EQA_list:
                     currentItem = (OOS_dict.get(item))
-                    print(f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
+                    print(
+                        f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
             pressEnter = input("\nPress enter to continue... ")
 
         elif user_input == 5:
@@ -313,7 +325,8 @@ def user_interface(returned_data):
                 print(f"Successful positive controls:")
                 for item in daily_path_positives:
                     currentItem = (OOS_dict.get(item))
-                    print(f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
+                    print(
+                        f"-> Customer: {currentItem.get('Customer')} , Sample_No.: {currentItem.get('Sample Number')} , Sample_Name: {currentItem.get('Sample Name')} , Sample Type: {currentItem.get('Sample Name')} , Description: {currentItem.get('Description')} , Test: {currentItem.get('Test')} , Result: {currentItem.get('Result')}")
             pressEnter = input("\nPress enter to continue... ")
 
         elif user_input == 6:
@@ -324,12 +337,14 @@ def user_interface(returned_data):
         else:
             print("Invalid input")
 
+
 def user_choice():
     """ This is the function creates the 'menu' the user will interact with, and accepts a choice between (1 and 6). This
     function is used within the 'User_interface()' function, to display the menu and request user input"""
 
     global user_input
-    print("----------------\n     MENU\n----------------\n1. Client call list\n2. Escalation\n3. Environmental failures\n4. IQC/ EQA samples\n5. Positive Controls\n6. Exit program\n ----------------")
+    print(
+        "----------------\n     MENU\n----------------\n1. Client call list\n2. Escalation\n3. Environmental failures\n4. IQC/ EQA samples\n5. Positive Controls\n6. Exit program\n ----------------")
 
     user_input = input("Choose an option (1-6): ")
 
@@ -341,13 +356,14 @@ def user_choice():
         print("...")
         return user_input
 
+
 def contact_info(customer):
     """ This function is called when expanding a client's OOS list on the 'Client call list' option. It searches the
     'Contact info' excel file for the relevant details and prints them. """
 
-    excel_file = pd.read_excel(r'C:\Users\Fabian\PycharmProjects\OOSproject\Excel tests 2\Contact details.xlsx')
+    contact_file = pd.read_excel(contact_file_input)
 
-    filtered_data = excel_file[excel_file['Customer'] == customer]
+    filtered_data = contact_file[contact_file['Customer'] == customer]
 
     row_numbers = filtered_data.index.tolist()
 
@@ -361,5 +377,6 @@ def contact_info(customer):
         telephone_num = (filtered_data.at[row, "Telephone Number"])
         email_address = (filtered_data.at[row, "Email Address"])
         notes = (filtered_data.at[row, "Notes"])
-        print(f"---------------\n{customer_name} || Contact Name: {contact_name} , Telephone: {telephone_num} , Email: {email_address}, Notes: {notes} \n---------------")
+        print(
+            f"---------------\n{customer_name} || Contact Name: {contact_name} , Telephone: {telephone_num} , Email: {email_address}, Notes: {notes} \n---------------")
 
